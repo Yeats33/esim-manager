@@ -1,0 +1,49 @@
+.esim {
+	padding: 12px;
+	font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+	/* 主文本颜色：蓝绿色（light 主题为 #0ea5a4） */
+	color: #0ea5a4; /* teal-500 / blue-green */
+}
+
+.esim h2 {
+	margin: 0 0 8px 0;
+	/* 标题强调颜色：青绿色 */
+	color: #0ea5a4; /* teal-500 */
+}
+
+.esim-list { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+.esim-item { padding:10px; border:1px solid #e5e7eb; border-radius:6px; background:#fff; }
+.esim-item div { margin:2px 0; }
+.esim-error { color: #b91c1c; margin-top:8px }
+
+.esim-item strong { color: #075985; /* 深蓝色用于条目标题 */ }
+
+/* Theme modifiers */
+.esim.light { background: #f8fafc; color: #0ea5a4 }
+.esim.light .esim-item { background: #fff; border-color: #e5e7eb }
+.esim.light h2 { color: #0ea5a4 }
+
+.esim.dark { background: #0b1220; color: #60f0df }
+.esim.dark .esim-item { background: #071027; border-color: #12263b }
+.esim.dark h2 { color: #60f0df }
+.esim.dark .esim-item strong { color: #9ad7ff }
+.esim-dark-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); color: #e6eef6 }
+
+.esim button { padding:6px 8px; border-radius:6px; border:1px solid rgba(0,0,0,0.08); background:transparent; cursor:pointer; color: #055e54 }
+.esim input, .esim select { padding:6px 8px; border-radius:6px; border:1px solid #e6e6e6 }
+.esim.dark input, .esim.dark select { border:1px solid #1f2d3a; background: rgba(255,255,255,0.02); color: #e6eef6 }
+
+/* 管理面板（设备/卡片/EID 切换） */
+.esim-manage { margin-top: 12px }
+.manage-tabs { display:flex; gap:8px }
+.manage-tab { padding:8px 12px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); background:transparent; cursor:pointer; font-weight:500 }
+.manage-tab:hover { filter: brightness(0.98); transform: translateY(-1px); }
+.manage-tab.active { background: #0ea5a4; border-color: #08918f; color: #fff; box-shadow: 0 2px 6px rgba(14,165,164,0.12) }
+.esim.dark .manage-tab.active { background: #0dd7c9; border-color: #06a88f; color: #012022 }
+.manage-panel { background: #fff }
+.esim.dark .manage-panel { background: #071027 }
+.manage-panel input, .manage-panel select { margin-right:6px }
+.esim.dark .manage-panel input, .esim.dark .manage-panel select { background: rgba(255,255,255,0.02); color: #e6eef6; border:1px solid #1f2d3a }
+
+/* 更醒目的深色主题按钮边界 */
+.esim.dark button { border:1px solid rgba(255,255,255,0.06); color: #bffaf3 }

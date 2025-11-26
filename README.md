@@ -16,11 +16,20 @@
 - 导入/导出：单条/全量导出 JSON；从文件导入（uTools 文件对话框）。
 - 主题与展示：简略/非空/全部视图切换；明暗主题；版权信息（`public/credits.html`）内置中英文折叠。
 
-## 项目结构
-- `public/credits.html`：版权与许可（中英折叠，CC BY-NC-SA 4.0 非商业）。
-- `public/preload/services.js`：uTools preload，文件存储、设备/卡片/EID/配置 CRUD、迁移与重置。
-- `src/ESIM/index.jsx`：主界面与业务逻辑。
-- 其他：`plugin.json`（入口词/开发地址）、`vite.config.js` 等。
+## 项目结构（核心可复用 vs uTools 外层）
+```
+├─ src/ESIM/index.jsx       # 核心前端（React）：设备/卡/EID/配置管理、模板、解锁、布局偏好等（可复用到 Web/Mac）
+├─ public/preload/services.js   # uTools preload：文件存储、设备/卡/EID/配置 CRUD（uTools 专用）
+├─ public/plugin.json           # uTools 插件清单（uTools 专用）
+├─ public/credits*.html         # 版权与许可（中英，可复用）
+├─ public/logo.png              # 插件图标（可复用）
+├─ .github/workflows/release-multi.yml  # 自动发布 main/trial/nolock（upx 打包，uTools 发布）
+├─ .github/scripts/compare_version.py   # 版本比较脚本（通用）
+├─ package.json / vite.config.js / README.md ...
+└─ dist/                        # 构建产物（build 后生成）
+```
+**跨平台可复用**：`src/ESIM/index.jsx`（前端逻辑/UI）、`public/credits*.html`、`public/logo.png`、`.github/scripts/compare_version.py` 等。
+**uTools 特定**：`public/preload/services.js`、`public/plugin.json`、`.github/workflows/release-multi.yml`（upx 打包与发布）。
 
 ## 环境
 - Node.js 18+ 与 npm

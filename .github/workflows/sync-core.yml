@@ -1,0 +1,66 @@
+name: Sync Core to Platforms
+
+on:
+  push:
+    branches:
+      - core
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch all
+        run: git fetch origin --prune
+
+      - name: Merge core into targets (protect platform files)
+        run: |
+          set -e
+          TARGETS=(main feat/mac-shell feat/web-shell)
+          PROTECT_PATHS=(public/plugin.json public/preload/services.js .github/workflows/release-multi.yml .config/lock.config.json)
+          for BR in "${TARGETS[@]}"; do
+            echo ""
+            echo "==> Merging core into $BR"
+            if git show-ref --verify --quiet refs/remotes/origin/$BR; then
+              git checkout -B $BR origin/$BR
+            else
+              git checkout -B $BR
+            fi
+
+            # backup platform-specific files
+            mkdir -p /tmp/protect/$BR
+            for P in "${PROTECT_PATHS[@]}"; do
+              if [ -f "$P" ]; then
+                mkdir -p "/tmp/protect/$BR/$(dirname "$P")"
+                cp "$P" "/tmp/protect/$BR/$P"
+              fi
+            done
+
+            # merge from core
+            git merge --no-edit origin/core || { echo "Merge into $BR failed"; exit 1; }
+
+            # restore protected files if they existed
+            for P in "${PROTECT_PATHS[@]}"; do
+              if [ -f "/tmp/protect/$BR/$P" ]; then
+                mkdir -p "$(dirname "$P")"
+                cp "/tmp/protect/$BR/$P" "$P"
+                git add "$P"
+              fi
+            done
+
+            git push origin $BR
+          done
+
+      - name: Done
+        run: echo "Core changes synced to main/mac/web (platform files protected)"

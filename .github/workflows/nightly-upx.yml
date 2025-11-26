@@ -1,0 +1,57 @@
+name: Nightly Build (uTools upx)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 20 * * *" # daily 20:00 UTC
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Package upx
+        run: |
+          set -e
+          rm -rf build-upx artifacts && mkdir -p build-upx/nightly artifacts
+          cp -R dist/* build-upx/nightly/
+          cp public/plugin.json build-upx/nightly/
+          [ -f public/logo.png ] && cp public/logo.png build-upx/nightly/ || true
+          [ -f public/credits.html ] && cp public/credits.html build-upx/nightly/ || true
+          [ -f public/credits.en.html ] && cp public/credits.en.html build-upx/nightly/ || true
+          (cd build-upx/nightly && zip -r ../../artifacts/esim-nightly.upx .)
+
+      - name: Meta
+        id: meta
+        run: |
+          RUN_DATE=$(date -u +%Y%m%d)
+          TAG="nightly-${RUN_DATE}-${GITHUB_RUN_NUMBER}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "name=Nightly ${RUN_DATE}" >> $GITHUB_OUTPUT
+
+      - name: Create nightly release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: ${{ steps.meta.outputs.name }}
+          draft: false
+          prerelease: true
+          files: artifacts/esim-nightly.upx

@@ -16,9 +16,9 @@ serde_json = "1"
 tauri = { version = "2.9.3", features = [
     "shell-open",
     "dialog-all",
-    "fs-read-dir",
     "fs-read-file",
     "fs-write-file",
+    "fs-read-dir",
     "fs-create-dir",
     "fs-remove-file"
 ] }

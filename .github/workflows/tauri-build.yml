@@ -26,11 +26,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: npm
 
       - name: Install deps (regenerate lock if needed)
         run: |
           npm install --no-fund --no-audit
+          # ensure lock is present for cache-less installs
+          test -f package-lock.json || npm install --package-lock-only --no-fund --no-audit
 
       - name: Build web assets
         run: npm run build
@@ -44,7 +45,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-${{ matrix.platform }}-${{ github.run_number }}
+          name: tauri-macos-${{ github.run_number }}
           path: |
             src-tauri/target/**/*.dmg
             src-tauri/target/**/*.appimage

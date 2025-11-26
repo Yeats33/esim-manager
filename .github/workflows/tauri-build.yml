@@ -50,6 +50,6 @@ jobs:
         with:
           name: tauri-macos-${{ github.run_number }}
           path: |
-            src-tauri/target/**/*.dmg
+            src-tauri/target/release/bundle/macos/*.dmg
             src-tauri/target/**/*.appimage
             src-tauri/target/**/*.msi

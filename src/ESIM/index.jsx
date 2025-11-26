@@ -986,10 +986,13 @@ export default function Esim () {
   const handleResetAll = () => {
     if (!window.confirm('确认重置所有 eSIM 数据吗？此操作不可撤销')) return
     try {
-      if (!window.services || typeof window.services.resetEsimStore !== 'function') {
-        throw new Error('preload 服务不可用：无法重置')
+      ensureTauriServices()
+      if (window.services && typeof window.services.resetEsimStore === 'function') {
+        window.services.resetEsimStore()
+      } else {
+        // fallback：本地缓存清空
+        window.localStorage.removeItem('esim_store')
       }
-      window.services.resetEsimStore()
       load()
       loadDevices()
       setMessage('已重置')
@@ -1001,19 +1004,19 @@ export default function Esim () {
 
   const handleRemoveSample = () => {
     try {
-      if (!window.services) throw new Error('preload 服务不可用')
+      ensureTauriServices()
+      const svc = window.services
+      if (!svc) throw new Error('preload 服务不可用')
       let removed = false
-      // 移除示例设备（会一并删除其卡片/EID/配置）
       for (const d of devices) {
         if (ensureDeviceLabel(d.name) === ensureDeviceLabel(templateProfile.deviceName)) {
-          window.services.removeDevice?.(d.id)
+          svc.removeDevice?.(d.id)
           removed = true
         }
       }
-      // 冗余清理：若还有匹配的示例配置，直接删配置
       for (const p of profiles) {
         if (ensureCardLabel(p.cardName) === ensureCardLabel(templateProfile.cardName) || (p.nickname && p.nickname.includes('示例'))) {
-          window.services.removeEsimProfile?.(p.id)
+          svc.removeEsimProfile?.(p.id)
           removed = true
         }
       }

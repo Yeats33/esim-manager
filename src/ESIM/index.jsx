@@ -365,10 +365,10 @@ export default function Esim () {
 
   const load = () => {
     try {
-      if (!window.services || typeof window.services.getEsimProfiles !== 'function') {
-        throw new Error('preload 服务不可用，请在 uTools 环境中运行')
-      }
-      const ps = window.services.getEsimProfiles()
+      ensureTauriServices()
+      const ps = (window.services && typeof window.services.getEsimProfiles === 'function')
+        ? window.services.getEsimProfiles()
+        : []
       setProfiles(ps)
     } catch (err) {
       setError(err.message || String(err))
@@ -379,10 +379,11 @@ export default function Esim () {
     load()
     // load devices (hierarchical store)
     try {
-      if (window.services && typeof window.services.getDevices === 'function') {
-        const ds = window.services.getDevices()
-        setDevices(ds)
-      }
+      ensureTauriServices()
+      const ds = (window.services && typeof window.services.getDevices === 'function')
+        ? window.services.getDevices()
+        : []
+      setDevices(ds)
     } catch (err) {
       console.error(err)
     }

@@ -1,0 +1,44 @@
+name: Sync Core to Platforms
+
+on:
+  push:
+    branches:
+      - core
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch all
+        run: git fetch origin --prune
+
+      - name: Merge core into targets
+        run: |
+          set -e
+          TARGETS=(main feat/mac-shell feat/web-shell)
+          for BR in "${TARGETS[@]}"; do
+            echo ""
+            echo "==> Merging core into $BR"
+            if git show-ref --verify --quiet refs/remotes/origin/$BR; then
+              git checkout -B $BR origin/$BR
+            else
+              git checkout -B $BR
+            fi
+            git merge --no-edit origin/core
+            git push origin $BR
+          done
+
+      - name: Done
+        run: echo "Core changes synced to main/mac/web"

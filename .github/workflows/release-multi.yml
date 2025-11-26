@@ -2,6 +2,9 @@ name: Release Multi Variant
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   build-and-release:
@@ -14,17 +17,52 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check latest release vs package version
+        id: check_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PKG_VER=$(node -e "console.log(require('./package.json').version)")
+          RESP=$(curl -s -H "Authorization: Bearer ${GITHUB_TOKEN}" https://api.github.com/repos/${{ github.repository }}/releases/latest)
+          LATEST_TAG=$(echo "$RESP" | jq -r '.tag_name // ""')
+          if [ "$LATEST_TAG" = "null" ]; then LATEST_TAG=""; fi
+          # only compare against main release tags (strip leading v and any suffix)
+          LATEST_VER=$(echo "$LATEST_TAG" | sed 's/^v//' | sed 's/-.*//')
+          DECISION=$(node -e "\
+import sys; \
+def cmp(a,b):\
+    pa=list(map(int,(a or '0.0.0').split('.')));\
+    pb=list(map(int,(b or '0.0.0').split('.')));\
+    pa+= [0]*(3-len(pa)); pb+= [0]*(3-len(pb));\
+    return (pa>pb)-(pa<pb);\
+pkg=sys.argv[1]; latest=sys.argv[2];\
+res=cmp(pkg, latest);\
+print('release' if latest=='' or res>0 else 'skip')\
+" "$PKG_VER" "$LATEST_VER")
+          echo "package_version=$PKG_VER" >> $GITHUB_OUTPUT
+          echo "latest_version=$LATEST_VER" >> $GITHUB_OUTPUT
+          if [ "$DECISION" = "release" ]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "Releasing: package $PKG_VER is newer than latest $LATEST_VER"
+          else
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "Skip release: package $PKG_VER <= latest $LATEST_VER"
+          fi
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
+        if: steps.check_release.outputs.should_release == 'true'
 
       - name: Install deps
         run: npm ci
+        if: steps.check_release.outputs.should_release == 'true'
 
       - name: Test base build
         run: npm run build
+        if: steps.check_release.outputs.should_release == 'true'
 
       - name: Compute versions
         id: ver
@@ -37,6 +75,7 @@ jobs:
           echo "MAIN_VER=$MAIN_VER"   >> $GITHUB_OUTPUT
           echo "TRIAL_VER=$TRIAL_VER" >> $GITHUB_OUTPUT
           echo "NOLOCK_VER=$NOLOCK_VER" >> $GITHUB_OUTPUT
+        if: steps.check_release.outputs.should_release == 'true'
 
       - name: Build main
         run: |
@@ -45,6 +84,7 @@ jobs:
           npm run build
           mkdir -p artifacts
           cd dist && zip -r ../artifacts/main.upxs .
+        if: steps.check_release.outputs.should_release == 'true'
 
       - name: Build trial (10m lock)
         run: |
@@ -57,6 +97,7 @@ jobs:
           npm run build
           mkdir -p artifacts
           cd dist && zip -r ../artifacts/trial.upxs .
+        if: steps.check_release.outputs.should_release == 'true'
 
       - name: Build nolock
         run: |
@@ -69,6 +110,7 @@ jobs:
           npm run build
           mkdir -p artifacts
           cd dist && zip -r ../artifacts/nolock.upxs .
+        if: steps.check_release.outputs.should_release == 'true'
 
       - name: Create release main
         uses: softprops/action-gh-release@v1
@@ -78,6 +120,7 @@ jobs:
           draft: false
           prerelease: false
           files: artifacts/main.upxs
+        if: steps.check_release.outputs.should_release == 'true'
 
       - name: Create release trial
         uses: softprops/action-gh-release@v1
@@ -87,6 +130,7 @@ jobs:
           draft: false
           prerelease: true
           files: artifacts/trial.upxs
+        if: steps.check_release.outputs.should_release == 'true'
 
       - name: Create release nolock
         uses: softprops/action-gh-release@v1
@@ -96,3 +140,4 @@ jobs:
           draft: false
           prerelease: false
           files: artifacts/nolock.upxs
+        if: steps.check_release.outputs.should_release == 'true'

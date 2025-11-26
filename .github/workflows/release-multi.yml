@@ -77,7 +77,7 @@ jobs:
           VITE_APP_BRANCH=main \
           npm run build
           cp -R dist/* build-upx/main/
-          cp plugin.json build-upx/main/
+          cp public/plugin.json build-upx/main/
           [ -f credits.html ] && cp credits.html build-upx/main/ || true
           [ -f credits.en.html ] && cp credits.en.html build-upx/main/ || true
           (cd build-upx/main && zip -r ../../artifacts/main.upx .)
@@ -95,7 +95,7 @@ jobs:
           VITE_APP_BRANCH=trial \
           npm run build
           cp -R dist/* build-upx/trial/
-          cp plugin.json build-upx/trial/
+          cp public/plugin.json build-upx/trial/
           [ -f credits.html ] && cp credits.html build-upx/trial/ || true
           [ -f credits.en.html ] && cp credits.en.html build-upx/trial/ || true
           (cd build-upx/trial && zip -r ../../artifacts/trial.upx .)
@@ -112,7 +112,7 @@ jobs:
           VITE_APP_BRANCH=nolock \
           npm run build
           cp -R dist/* build-upx/nolock/
-          cp plugin.json build-upx/nolock/
+          cp public/plugin.json build-upx/nolock/
           [ -f credits.html ] && cp credits.html build-upx/nolock/ || true
           [ -f credits.en.html ] && cp credits.en.html build-upx/nolock/ || true
           (cd build-upx/nolock && zip -r ../../artifacts/nolock.upx .)

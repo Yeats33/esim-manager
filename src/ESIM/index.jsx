@@ -569,9 +569,6 @@ export default function Esim () {
       // profile does not include eids array; it links to a single eid via eidId
       boundEid: '',
       nickname: newNickname,
-      phoneNumber: newPhoneNumber,
-      country: newCountry,
-      areaCode: newAreaCode,
       operator: newOperator,
       roamingOperator: newRoamingOperator,
       validUntil: newValidUntil ? new Date(newValidUntil).toISOString() : null,

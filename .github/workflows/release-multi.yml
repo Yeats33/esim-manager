@@ -59,48 +59,63 @@ jobs:
         run: |
           MAIN_VER=$(node -e "console.log(require('./package.json').version)")
           IFS='.' read MAJ MIN PAT <<<"$MAIN_VER"
-          TP=$((PAT-1)); [ $TP -lt 0 ] && TP=0
-          TRIAL_VER="$MAJ.$MIN.$TP"
-          NOLOCK_VER="$MAJ.$MIN.$TP"
+          TRIAL_ENABLED=0
+          NOLOCK_ENABLED=0
+          if [ $((PAT % 2)) -eq 0 ]; then TRIAL_ENABLED=1; fi
+          if [ $((PAT % 5)) -eq 0 ]; then NOLOCK_ENABLED=1; fi
           echo "MAIN_VER=$MAIN_VER"   >> $GITHUB_OUTPUT
-          echo "TRIAL_VER=$TRIAL_VER" >> $GITHUB_OUTPUT
-          echo "NOLOCK_VER=$NOLOCK_VER" >> $GITHUB_OUTPUT
+          echo "TRIAL_VER=$MAIN_VER" >> $GITHUB_OUTPUT
+          echo "NOLOCK_VER=$MAIN_VER" >> $GITHUB_OUTPUT
+          echo "TRIAL_ENABLED=$TRIAL_ENABLED" >> $GITHUB_OUTPUT
+          echo "NOLOCK_ENABLED=$NOLOCK_ENABLED" >> $GITHUB_OUTPUT
         if: steps.check_release.outputs.should_release == 'true'
 
       - name: Build main
         run: |
+          rm -rf artifacts build-upx && mkdir -p artifacts build-upx/main
           VITE_APP_VERSION=${{ steps.ver.outputs.MAIN_VER }} \
           VITE_APP_BRANCH=main \
           npm run build
-          mkdir -p artifacts
-          cd dist && zip -r ../artifacts/main.upxs .
+          cp -R dist/* build-upx/main/
+          cp plugin.json build-upx/main/
+          [ -f credits.html ] && cp credits.html build-upx/main/ || true
+          [ -f credits.en.html ] && cp credits.en.html build-upx/main/ || true
+          (cd build-upx/main && zip -r ../../artifacts/main.upx .)
         if: steps.check_release.outputs.should_release == 'true'
 
       - name: Build trial (10m lock)
+        if: steps.check_release.outputs.should_release == 'true' && steps.ver.outputs.TRIAL_ENABLED == '1'
         run: |
           git checkout -- package.json public/plugin.json .env || true
           jq '.version = "${{ steps.ver.outputs.TRIAL_VER }}"' package.json > /tmp/pkg && mv /tmp/pkg package.json
           jq '.version = "${{ steps.ver.outputs.TRIAL_VER }}"' public/plugin.json > /tmp/plugin && mv /tmp/plugin public/plugin.json
+          rm -rf build-upx/trial && mkdir -p build-upx/trial
           VITE_LOCK_PROFILE=trial \
           VITE_APP_VERSION=${{ steps.ver.outputs.TRIAL_VER }} \
           VITE_APP_BRANCH=trial \
           npm run build
-          mkdir -p artifacts
-          cd dist && zip -r ../artifacts/trial.upxs .
-        if: steps.check_release.outputs.should_release == 'true'
+          cp -R dist/* build-upx/trial/
+          cp plugin.json build-upx/trial/
+          [ -f credits.html ] && cp credits.html build-upx/trial/ || true
+          [ -f credits.en.html ] && cp credits.en.html build-upx/trial/ || true
+          (cd build-upx/trial && zip -r ../../artifacts/trial.upx .)
 
       - name: Build nolock
+        if: steps.check_release.outputs.should_release == 'true' && steps.ver.outputs.NOLOCK_ENABLED == '1'
         run: |
           git checkout -- package.json public/plugin.json .env || true
           jq '.version = "${{ steps.ver.outputs.NOLOCK_VER }}"' package.json > /tmp/pkg && mv /tmp/pkg package.json
           jq '.version = "${{ steps.ver.outputs.NOLOCK_VER }}"' public/plugin.json > /tmp/plugin && mv /tmp/plugin public/plugin.json
+          rm -rf build-upx/nolock && mkdir -p build-upx/nolock
           VITE_LOCK_PROFILE=nolock \
           VITE_APP_VERSION=${{ steps.ver.outputs.NOLOCK_VER }} \
           VITE_APP_BRANCH=nolock \
           npm run build
-          mkdir -p artifacts
-          cd dist && zip -r ../artifacts/nolock.upxs .
-        if: steps.check_release.outputs.should_release == 'true'
+          cp -R dist/* build-upx/nolock/
+          cp plugin.json build-upx/nolock/
+          [ -f credits.html ] && cp credits.html build-upx/nolock/ || true
+          [ -f credits.en.html ] && cp credits.en.html build-upx/nolock/ || true
+          (cd build-upx/nolock && zip -r ../../artifacts/nolock.upx .)
 
       - name: Create release main
         uses: softprops/action-gh-release@v1

@@ -18,7 +18,6 @@ tauri = { version = "2.9.3", features = [
     "fs-read-file",
     "fs-write-file",
     "fs-read-dir",
-    "fs-create-dir",
     "fs-remove-file"
 ] }
 chrono = "0.4"

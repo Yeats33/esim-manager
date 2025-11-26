@@ -128,6 +128,7 @@ jobs:
         if: steps.check_release.outputs.should_release == 'true'
 
       - name: Create release trial
+        if: steps.check_release.outputs.should_release == 'true' && steps.ver.outputs.TRIAL_ENABLED == '1'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.ver.outputs.TRIAL_VER }}-trial
@@ -135,9 +136,9 @@ jobs:
           draft: false
           prerelease: true
           files: artifacts/trial.upxs
-        if: steps.check_release.outputs.should_release == 'true'
 
       - name: Create release nolock
+        if: steps.check_release.outputs.should_release == 'true' && steps.ver.outputs.NOLOCK_ENABLED == '1'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.ver.outputs.NOLOCK_VER }}-nolock
@@ -145,4 +146,3 @@ jobs:
           draft: false
           prerelease: true
           files: artifacts/nolock.upxs
-        if: steps.check_release.outputs.should_release == 'true'

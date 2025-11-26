@@ -1,6 +1,10 @@
 # eSIM 管理工具（uTools 插件）
 
 开源的 uTools 插件，帮助管理 eSIM 配置、设备、卡片、EID，支持导入/导出、本地存储与隐私/UID 控制。基于 Vite + React。
+
+## 试用版说明
+- 当前为试用版：启动后 10 分钟自动锁定，需要回答“本工具首发于哪个论坛？”。
+- 解锁状态会在本地记忆；试用限制仅做体验用途，正式版将去除此限制。
 ## 图片展示
 ![undefined](https://m.360buyimg.com/i/jfs/t1/353365/24/18478/280123/69264633F60ee7cd2/402514907542f050.png)
 ![undefined](https://m.360buyimg.com/i/jfs/t1/367488/39/5264/273325/69264631F3440fbc2/071799e99e2bfe05.png)
@@ -49,6 +53,12 @@ npm run build
 
 ## 版权与许可
 - 见 `public/credits.html`（中英双语可折叠）：CC BY-NC-SA 4.0，非商业使用，商业需联系作者。
+
+## 联系方式
+- 邮箱：contact@yeats.cc
+- Telegram：@yeatssang
+- WhatsApp：+372 57211275
+- WeChat：yeatssang / +372 57211275（不推荐）
 
 ## 常见命令
 ```bash

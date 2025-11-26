@@ -1,0 +1,6 @@
+{
+  "main":   { "enabled": true,  "delayMinutes": 0 },
+  "dev":    { "enabled": true,  "delayMinutes": 0 },
+  "trial":  { "enabled": true,  "delayMinutes": 10 },
+  "nolock": { "enabled": false, "delayMinutes": 0 }
+}

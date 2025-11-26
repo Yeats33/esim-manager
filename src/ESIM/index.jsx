@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import lockConfigMap from '../.config/lock.config.json'
 import './index.css'
 
 export default function Esim () {
@@ -75,7 +76,9 @@ export default function Esim () {
   const [hideNoneEids, setHideNoneEids] = useState(false)
   const [privacyMode, setPrivacyMode] = useState(false)
   const [creditsHtml, setCreditsHtml] = useState('')
-  const [locked, setLocked] = useState(true)
+  const lockProfile = (import.meta?.env?.VITE_LOCK_PROFILE || 'main').toLowerCase()
+  const lockConfig = lockConfigMap[lockProfile] || lockConfigMap.main || { enabled: true, delayMinutes: 0 }
+  const [locked, setLocked] = useState(false)
   const [lockInput, setLockInput] = useState('')
   const [lockError, setLockError] = useState('')
   const lockAnswer = '奶昔' // 本工具首发论坛名称（可修改）
@@ -361,10 +364,23 @@ export default function Esim () {
     }
   }, [actionProfileId])
   useEffect(() => {
+    if (!lockConfig.enabled) {
+      setLocked(false)
+      return
+    }
     try {
       const saved = window.localStorage.getItem('esim_unlock')
-      if (saved === lockAnswer) setLocked(false)
-    } catch (e) {}
+      if (saved === lockAnswer) {
+        setLocked(false)
+      } else {
+        lockTimerRef.current = setTimeout(() => setLocked(true), (lockConfig.delayMinutes || 0) * 60 * 1000)
+      }
+    } catch (e) {
+      lockTimerRef.current = setTimeout(() => setLocked(true), (lockConfig.delayMinutes || 0) * 60 * 1000)
+    }
+    return () => {
+      if (lockTimerRef.current) clearTimeout(lockTimerRef.current)
+    }
   }, [])
   useEffect(() => {
     try {

@@ -72,6 +72,10 @@ export default function Esim () {
   const [hideNoneEids, setHideNoneEids] = useState(false)
   const [privacyMode, setPrivacyMode] = useState(false)
   const [creditsHtml, setCreditsHtml] = useState('')
+  const [locked, setLocked] = useState(true)
+  const [lockInput, setLockInput] = useState('')
+  const [lockError, setLockError] = useState('')
+  const lockAnswer = '奶昔' // 本工具首发论坛名称（可修改）
   const templateProfile = {
     deviceName: '示例设备',
     cardType: 'native',
@@ -318,6 +322,24 @@ export default function Esim () {
       .then(text => setCreditsHtml(text))
       .catch(() => setCreditsHtml('无法加载 credits.html，请检查文件'))
   }, [])
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem('esim_unlock')
+      if (saved === lockAnswer) setLocked(false)
+    } catch (e) {}
+  }, [])
+
+  const handleUnlock = (e) => {
+    e.preventDefault()
+    if ((lockInput || '').trim().toLowerCase() === lockAnswer) {
+      setLocked(false)
+      setLockError('')
+      setLockInput('')
+      try { window.localStorage.setItem('esim_unlock', lockAnswer) } catch (e) {}
+    } else {
+      setLockError('答案不正确，请输入正确的论坛名称解锁')
+    }
+  }
 
   const uniqueDevices = Array.from(new Set(devices.map(d => d.name).filter(Boolean)))
 
@@ -1194,6 +1216,19 @@ export default function Esim () {
 
   return (
     <div className={`esim ${theme}`}>
+      {locked && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <form onSubmit={handleUnlock} style={{ background: '#fff', padding: 20, borderRadius: 10, minWidth: 320, boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ marginTop: 0 }}>解锁提示</h3>
+            <p style={{ marginBottom: 8 }}>回答问题以继续：本工具首发于哪个论坛？</p>
+            <input autoFocus value={lockInput} onChange={e => setLockInput(e.target.value)} placeholder='请输入论坛名称' style={{ width: '100%', marginBottom: 8 }} />
+            {lockError && <div style={{ color: '#b91c1c', marginBottom: 8 }}>{lockError}</div>}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button type='submit'>解锁</button>
+            </div>
+          </form>
+        </div>
+      )}
       <h2>eSIM 管理</h2>
       <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>

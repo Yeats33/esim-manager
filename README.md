@@ -1,6 +1,6 @@
-# eSIM 管理工具（uTools 插件） <sub>v1.0.4 · main</sub>
+# eSIM 管理工具（核心版） <sub>v1.0.4 · core</sub>
 
-开源的 uTools 插件，帮助管理 eSIM 配置、设备、卡片、EID，支持导入/导出、本地存储与隐私/UID 控制。基于 Vite + React。
+跨平台可复用的核心前端（React），用于管理 eSIM 配置、设备、卡片、EID，支持导入/导出与隐私/UID 控制。本分支移除了 uTools 专有清单与 preload，仅保留通用 UI/逻辑，方便后续合并到 Web/Mac 等项目。
 ## 图片展示
 ![undefined](https://m.360buyimg.com/i/jfs/t1/353365/24/18478/280123/69264633F60ee7cd2/402514907542f050.png)
 ![undefined](https://m.360buyimg.com/i/jfs/t1/367488/39/5264/273325/69264631F3440fbc2/071799e99e2bfe05.png)
@@ -16,24 +16,20 @@
 - 导入/导出：单条/全量导出 JSON；从文件导入（uTools 文件对话框）。
 - 主题与展示：简略/非空/全部视图切换；明暗主题；版权信息（`public/credits.html`）内置中英文折叠。
 
-## 项目结构（核心可复用 vs uTools 外层）
+## 项目结构（核心可复用）
 ```
 ├─ src/ESIM/index.jsx       # 核心前端（React）：设备/卡/EID/配置管理、模板、解锁、布局偏好等（可复用到 Web/Mac）
-├─ public/preload/services.js   # uTools preload：文件存储、设备/卡/EID/配置 CRUD（uTools 专用）
-├─ public/plugin.json           # uTools 插件清单（uTools 专用）
-├─ public/credits*.html         # 版权与许可（中英，可复用）
-├─ public/logo.png              # 插件图标（可复用）
-├─ .github/workflows/release-multi.yml  # 自动发布 main/trial/nolock（upx 打包，uTools 发布）
+├─ public/credits*.html     # 版权与许可（中英，可复用）
+├─ public/logo.png          # 插件图标（可复用）
 ├─ .github/scripts/compare_version.py   # 版本比较脚本（通用）
 ├─ package.json / vite.config.js / README.md ...
 └─ dist/                        # 构建产物（build 后生成）
 ```
 **跨平台可复用**：`src/ESIM/index.jsx`（前端逻辑/UI）、`public/credits*.html`、`public/logo.png`、`.github/scripts/compare_version.py` 等。
-**uTools 特定**：`public/preload/services.js`、`public/plugin.json`、`.github/workflows/release-multi.yml`（upx 打包与发布）。
+**已移除 uTools 专用**：`public/plugin.json`、`public/preload/services.js`、uTools 发布工作流。若需要 uTools 版，请在 `main` 分支。
 
 ## 环境
 - Node.js 18+ 与 npm
-- uTools（运行与调试插件）
 
 ## 开发与调试
 ```bash
@@ -51,13 +47,13 @@ npm run build
 # 产物在 dist/
 ```
 
-## 在 uTools 中使用
-1) 构建后将 dist 作为插件目录（或复制到任意目录包含 index.html、plugin.json、preload 等）。
-2) uTools → 加载已解压插件 → 选择目录。
-3) 在插件内使用导入/导出/管理功能。
+## 在其他平台使用
+本分支不包含 uTools preload，可直接作为 Web 前端，或接入自定义后端/桌面存储层：
+1) 构建后将 dist 作为静态资源（或直接 `npm run dev` 预览）。
+2) 提供与 `window.services` 兼容的存储接口，或根据需要替换为自有数据层。
 
-## 数据存储
-- 插件环境：`public/preload/services.js` 将数据保存到用户 Downloads 目录的 `esim_profiles.json`。
+## 数据存储（核心版）
+- 默认会降级使用 localStorage（浏览器环境）；如需持久化到文件/数据库，请自行实现 `window.services` 兼容接口。
 - “未指定”占位按设备独立（none card/eid）。
 
 ## 版权与许可

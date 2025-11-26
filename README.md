@@ -1,11 +1,11 @@
-# eSIM 管理工具（uTools 插件，Beta）
+# eSIM 管理工具（uTools 插件）
 
 开源的 uTools 插件，帮助管理 eSIM 配置、设备、卡片、EID，支持导入/导出、本地存储与隐私/UID 控制。基于 Vite + React。
 ## 图片展示
 ![undefined](https://m.360buyimg.com/i/jfs/t1/353365/24/18478/280123/69264633F60ee7cd2/402514907542f050.png)
 ![undefined](https://m.360buyimg.com/i/jfs/t1/367488/39/5264/273325/69264631F3440fbc2/071799e99e2bfe05.png)
 ![undefined](https://m.360buyimg.com/i/jfs/t1/367811/29/6220/243974/6926463eFba72d304/592ea438d987ba98.png)
-## 主要功能（Beta）
+## 主要功能
 - 配置管理：新增/编辑/删除，字段包含号码/国家区号/APN/流量短信语音（单位+周期）/备注/Aff 链接等。
 - 层级管理：设备/卡片/EID 可新增、编辑、删除、展开查看子项，支持移动 Profile、UID 显示开关、隐藏未指定占位。
 - 隐私模式：EID 与号码可按首尾保留中间打码。
@@ -58,3 +58,11 @@ npm run build    # 构建
 
 ## 更新日志
 - 2025-11-25：新增 UID 全局开关、隐私模式、类型筛选、独立版权 HTML；设备专属未指定占位；多字段配置表单。
+
+## Release 1.0.0
+- Title: eSIM 管理工具 v1.0.0
+- Notes:
+  - 全量 eSIM 配置/设备/卡片/EID 管理，含隐私打码与 UID 显示切换。
+  - 导入/导出 JSON，设备专属“未指定”占位，类型筛选与隐藏未指定开关。
+  - 配置字段扩展：号码/区号/APN/流量短信语音（单位+周期）/备注/Aff 链接。
+  - 版权信息改用 `public/credits.html`（中英可折叠），许可 CC BY-NC-SA 4.0。

@@ -72,6 +72,36 @@ export default function Esim () {
   const [hideNoneEids, setHideNoneEids] = useState(false)
   const [privacyMode, setPrivacyMode] = useState(false)
   const [creditsHtml, setCreditsHtml] = useState('')
+  const templateProfile = {
+    deviceName: '示例设备',
+    cardType: 'native',
+    cardName: '示例卡片',
+    nickname: '示例套餐',
+    phoneNumber: '13800138000',
+    country: '中国',
+    areaCode: '+86',
+    apn: 'cmnet',
+    dataBalance: 10,
+    dataUnit: 'GB',
+    dataCycle: 'month',
+    dataPeriod: 30,
+    smsBalance: 100,
+    smsUnit: '条',
+    smsCycle: 'month',
+    smsPeriod: 30,
+    voiceBalance: 200,
+    voiceUnit: '分钟',
+    voiceCycle: 'month',
+    voicePeriod: 30,
+    operator: '示例运营商',
+    roamingOperator: '示例漫游',
+    balance: 50,
+    monthlyFee: 20,
+    retention: '每月充值保号',
+    affLink: 'https://example.com/aff',
+    validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    notes: '这是一个示例配置'
+  }
   // refs for stable focus
   const newDeviceInputRef = useRef(null)
   const newCardNameInputRef = useRef(null)
@@ -827,6 +857,34 @@ export default function Esim () {
     }
   }
 
+  const applyTemplateProfile = () => {
+    try {
+      if (!window.services || typeof window.services.addDevice !== 'function') throw new Error('preload 服务不可用')
+      const device = window.services.addDevice({ name: `${templateProfile.deviceName}` })
+      const card = window.services.addCard(device.id, { cardType: templateProfile.cardType, cardName: templateProfile.cardName })
+      const eidValue = '8904' + Math.random().toString().slice(2, 14)
+      const eid = window.services.addEid(device.id, card.id, eidValue, '示例EID')
+      const payload = { ...templateProfile, deviceName: device.name, cardName: card.cardName, cardType: card.cardType }
+      window.services.addEsimProfile(payload, eid.id)
+      setMessage('已生成示例配置')
+      setTimeout(() => setMessage(''), 2000)
+      load()
+      loadDevices()
+    } catch (err) {
+      setError(err.message || String(err))
+    }
+  }
+
+  const copyTemplateProfile = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(templateProfile, null, 2))
+      setMessage('模版 JSON 已复制')
+      setTimeout(() => setMessage(''), 2000)
+    } catch (err) {
+      setError('无法复制模版 JSON')
+    }
+  }
+
   useEffect(() => {
     try {
       const t = window.localStorage.getItem('esim_theme') || 'light'
@@ -1142,6 +1200,8 @@ export default function Esim () {
           <button onClick={handleResetAll} style={{ color: '#b91c1c' }}>重置全部</button>
           <button onClick={handleImport}>从文件导入</button>
           <button onClick={handleExportAll}>导出全部</button>
+          <button onClick={applyTemplateProfile}>生成示例配置</button>
+          <button onClick={copyTemplateProfile}>复制示例 JSON</button>
           <button onClick={() => setShowUid(prev => !prev)}>{showUid ? '隐藏 UID' : '显示 UID'}</button>
           <button onClick={() => setPrivacyMode(prev => !prev)}>{privacyMode ? '关闭隐私模式' : '开启隐私模式'}</button>
         </div>

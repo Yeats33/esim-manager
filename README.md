@@ -1,4 +1,4 @@
-# eSIM 管理工具（uTools 插件） <sub>v1.0.2 · main</sub>
+# eSIM 管理工具（uTools 插件） <sub>v1.0.4 · main</sub>
 
 开源的 uTools 插件，帮助管理 eSIM 配置、设备、卡片、EID，支持导入/导出、本地存储与隐私/UID 控制。基于 Vite + React。
 ## 图片展示
@@ -88,3 +88,10 @@ npm run build    # 构建
   - 示例生成会附带示例充值模板；新增“删除示例配置”按钮。
   - 使用/充值支持每个配置单独的模板保存/加载，并导出时包含模板 JSON。
   - 锁定解锁记忆、本地模版字段等细节完善。
+
+## Release 1.0.4
+- Title: eSIM 管理工具 v1.0.4
+- Notes:
+  - GitHub Actions 自动发布调整：main 每次发布；trial 仅在补丁号为偶数；nolock 仅在补丁号为 5 的倍数，并标记为预发布，保证 main 是最新正式版。
+  - uTools 打包修正：.upx 包含 plugin.json 和 credits 资源，从 build 目录整体打包，确保官方识别。
+  - 引入独立版本比较脚本，自动跳过低于已发布版本的构建。

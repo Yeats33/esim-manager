@@ -1,6 +1,6 @@
 {
   "name": "eSIM 管理工具",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "index.html",
   "preload": "preload/services.js",
   "logo": "logo.png",

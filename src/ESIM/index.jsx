@@ -938,16 +938,28 @@ export default function Esim () {
     }
   }
 
+  const clearLocalCaches = () => {
+    try {
+      const keys = Object.keys(window.localStorage || {})
+      keys.forEach(k => {
+        if (k.startsWith('esim_action_templates_') || k === 'esim_layout_prefs' || k === 'esim_unlock_answered') {
+          window.localStorage.removeItem(k)
+        }
+      })
+    } catch (e) {}
+  }
+
   const handleResetAll = () => {
-    if (!window.confirm('确认重置所有 eSIM 数据吗？此操作不可撤销')) return
+    if (!window.confirm('确认重置所有 eSIM 数据、布局设置和充值模板吗？此操作不可撤销')) return
     try {
       if (!window.services || typeof window.services.resetEsimStore !== 'function') {
         throw new Error('preload 服务不可用：无法重置')
       }
       window.services.resetEsimStore()
+      clearLocalCaches()
       load()
       loadDevices()
-      setMessage('已重置')
+      setMessage('已重置（数据与本地缓存）')
       setTimeout(() => setMessage(''), 2000)
     } catch (err) {
       setError(err.message || String(err))
@@ -1379,7 +1391,7 @@ export default function Esim () {
       </h2>
       <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          {layoutPrefs.reset && <button onClick={handleResetAll} style={{ color: '#b91c1c' }}>重置全部</button>}
+          {layoutPrefs.reset && <button onClick={handleResetAll} style={{ color: '#b91c1c' }}>重置全部（含缓存）</button>}
           {layoutPrefs.import && <button onClick={handleImport}>从文件导入</button>}
           {layoutPrefs.exportAll && <button onClick={handleExportAll}>导出全部</button>}
           {layoutPrefs.sampleDelete && <button onClick={handleRemoveSample}>删除示例配置</button>}

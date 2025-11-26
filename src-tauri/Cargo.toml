@@ -13,13 +13,7 @@ tauri-build = { version = "2.5.2", features = [] }
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tauri = { version = "2.9.3", features = [
-    "shell-open",
-    "fs-read-file",
-    "fs-write-file",
-    "fs-read-dir",
-    "fs-remove-file"
-] }
+tauri = { version = "2.9.3", features = [] }
 chrono = "0.4"
 
 [profile.release]

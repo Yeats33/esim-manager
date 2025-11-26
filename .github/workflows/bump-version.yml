@@ -1,0 +1,51 @@
+name: Bump Version Patch
+
+on:
+  workflow_dispatch:
+    inputs:
+      target-branch:
+        description: 'Branch to bump (default: main)'
+        required: false
+        default: 'main'
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.target-branch || 'main' }}
+
+      - name: Setup git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump patch version in package.json & public/plugin.json
+        id: bump
+        run: |
+          bump() {
+            FILE=$1
+            VER=$(jq -r '.version' "$FILE")
+            IFS='.' read MAJ MIN PAT <<<"$VER"
+            PAT=$((PAT+1))
+            NEW_VER="$MAJ.$MIN.$PAT"
+            jq ".version = \"$NEW_VER\"" "$FILE" > /tmp/_v && mv /tmp/_v "$FILE"
+            echo "$FILE -> $NEW_VER"
+            echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
+          }
+          bump package.json
+          bump public/plugin.json
+
+      - name: Commit changes
+        run: |
+          git add package.json public/plugin.json
+          git commit -m "chore: bump version to ${{ steps.bump.outputs.new_version }}" || echo "nothing to commit"
+
+      - name: Push
+        run: |
+          git push origin HEAD:${{ github.event.inputs.target-branch || 'main' }}

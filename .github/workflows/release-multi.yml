@@ -78,6 +78,7 @@ jobs:
           npm run build
           cp -R dist/* build-upx/main/
           cp public/plugin.json build-upx/main/
+          [ -f public/logo.png ] && cp public/logo.png build-upx/main/ || true
           [ -f credits.html ] && cp credits.html build-upx/main/ || true
           [ -f credits.en.html ] && cp credits.en.html build-upx/main/ || true
           (cd build-upx/main && zip -r ../../artifacts/main.upx .)
@@ -96,6 +97,7 @@ jobs:
           npm run build
           cp -R dist/* build-upx/trial/
           cp public/plugin.json build-upx/trial/
+          [ -f public/logo.png ] && cp public/logo.png build-upx/trial/ || true
           [ -f credits.html ] && cp credits.html build-upx/trial/ || true
           [ -f credits.en.html ] && cp credits.en.html build-upx/trial/ || true
           (cd build-upx/trial && zip -r ../../artifacts/trial.upx .)
@@ -113,6 +115,7 @@ jobs:
           npm run build
           cp -R dist/* build-upx/nolock/
           cp public/plugin.json build-upx/nolock/
+          [ -f public/logo.png ] && cp public/logo.png build-upx/nolock/ || true
           [ -f credits.html ] && cp credits.html build-upx/nolock/ || true
           [ -f credits.en.html ] && cp credits.en.html build-upx/nolock/ || true
           (cd build-upx/nolock && zip -r ../../artifacts/nolock.upx .)

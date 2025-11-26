@@ -79,6 +79,20 @@ export default function Esim () {
   const [lockInput, setLockInput] = useState('')
   const [lockError, setLockError] = useState('')
   const lockAnswer = '奶昔' // 本工具首发论坛名称（可修改）
+  // 布局可配置
+  const defaultLayoutPrefs = {
+    reset: true,
+    import: true,
+    exportAll: true,
+    sampleGenerate: true,
+    sampleDelete: true,
+    sampleCopyJson: true,
+    toggleUid: true,
+    togglePrivacy: true,
+    toggleTheme: true
+  }
+  const [layoutPrefs, setLayoutPrefs] = useState(defaultLayoutPrefs)
+  const [showLayoutModal, setShowLayoutModal] = useState(false)
   const templateProfile = {
     deviceName: '示例设备',
     cardType: 'native',
@@ -352,6 +366,13 @@ export default function Esim () {
       if (saved === lockAnswer) setLocked(false)
     } catch (e) {}
   }, [])
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem('esim_layout_prefs')
+      const parsed = raw ? JSON.parse(raw) : null
+      if (parsed && typeof parsed === 'object') setLayoutPrefs(prev => ({ ...prev, ...parsed }))
+    } catch (e) {}
+  }, [])
 
   const handleUnlock = (e) => {
     e.preventDefault()
@@ -362,6 +383,17 @@ export default function Esim () {
       try { window.localStorage.setItem('esim_unlock', lockAnswer) } catch (e) {}
     } else {
       setLockError('答案不正确，请输入正确的论坛名称解锁')
+    }
+  }
+
+  const handleSaveLayoutPrefs = () => {
+    try {
+      window.localStorage.setItem('esim_layout_prefs', JSON.stringify(layoutPrefs))
+      setShowLayoutModal(false)
+      setMessage('布局设置已保存')
+      setTimeout(() => setMessage(''), 2000)
+    } catch (e) {
+      setError('布局设置保存失败')
     }
   }
 
@@ -1301,20 +1333,41 @@ export default function Esim () {
           </form>
         </div>
       )}
+      {showLayoutModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9998 }}>
+          <div style={{ background: '#fff', padding: 16, borderRadius: 10, minWidth: 320, maxWidth: 420, boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ marginTop: 0 }}>布局设置</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <label><input type='checkbox' checked={layoutPrefs.reset} onChange={e => setLayoutPrefs(prev => ({ ...prev, reset: e.target.checked }))} /> 重置全部</label>
+              <label><input type='checkbox' checked={layoutPrefs.import} onChange={e => setLayoutPrefs(prev => ({ ...prev, import: e.target.checked }))} /> 从文件导入</label>
+              <label><input type='checkbox' checked={layoutPrefs.exportAll} onChange={e => setLayoutPrefs(prev => ({ ...prev, exportAll: e.target.checked }))} /> 导出全部</label>
+              <label><input type='checkbox' checked={layoutPrefs.sampleGenerate} onChange={e => setLayoutPrefs(prev => ({ ...prev, sampleGenerate: e.target.checked }))} /> 生成示例</label>
+              <label><input type='checkbox' checked={layoutPrefs.sampleDelete} onChange={e => setLayoutPrefs(prev => ({ ...prev, sampleDelete: e.target.checked }))} /> 删除示例</label>
+              <label><input type='checkbox' checked={layoutPrefs.sampleCopyJson} onChange={e => setLayoutPrefs(prev => ({ ...prev, sampleCopyJson: e.target.checked }))} /> 复制示例 JSON</label>
+              <label><input type='checkbox' checked={layoutPrefs.toggleUid} onChange={e => setLayoutPrefs(prev => ({ ...prev, toggleUid: e.target.checked }))} /> UID 开关</label>
+              <label><input type='checkbox' checked={layoutPrefs.togglePrivacy} onChange={e => setLayoutPrefs(prev => ({ ...prev, togglePrivacy: e.target.checked }))} /> 隐私开关</label>
+              <label><input type='checkbox' checked={layoutPrefs.toggleTheme} onChange={e => setLayoutPrefs(prev => ({ ...prev, toggleTheme: e.target.checked }))} /> 主题切换</label>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 12 }}>
+              <button onClick={() => setShowLayoutModal(false)}>取消</button>
+              <button onClick={handleSaveLayoutPrefs}>保存</button>
+            </div>
+          </div>
+        </div>
+      )}
       <h2>eSIM 管理</h2>
       <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button onClick={handleResetAll} style={{ color: '#b91c1c' }}>重置全部</button>
-          <button onClick={handleImport}>从文件导入</button>
-          <button onClick={handleExportAll}>导出全部</button>
-          <button onClick={handleRemoveSample}>删除示例配置</button>
-          <button onClick={applyTemplateProfile}>生成示例配置</button>
-          <button onClick={copyTemplateProfile}>复制示例 JSON</button>
-          <button onClick={() => setShowUid(prev => !prev)}>{showUid ? '隐藏 UID' : '显示 UID'}</button>
-          <button onClick={() => setPrivacyMode(prev => !prev)}>{privacyMode ? '关闭隐私模式' : '开启隐私模式'}</button>
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button onClick={toggleTheme}>{theme === 'light' ? '切换夜间' : '切换白天'}</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          {layoutPrefs.reset && <button onClick={handleResetAll} style={{ color: '#b91c1c' }}>重置全部</button>}
+          {layoutPrefs.import && <button onClick={handleImport}>从文件导入</button>}
+          {layoutPrefs.exportAll && <button onClick={handleExportAll}>导出全部</button>}
+          {layoutPrefs.sampleDelete && <button onClick={handleRemoveSample}>删除示例配置</button>}
+          {layoutPrefs.sampleGenerate && <button onClick={applyTemplateProfile}>生成示例配置</button>}
+          {layoutPrefs.sampleCopyJson && <button onClick={copyTemplateProfile}>复制示例 JSON</button>}
+          {layoutPrefs.toggleUid && <button onClick={() => setShowUid(prev => !prev)}>{showUid ? '隐藏 UID' : '显示 UID'}</button>}
+          {layoutPrefs.togglePrivacy && <button onClick={() => setPrivacyMode(prev => !prev)}>{privacyMode ? '关闭隐私模式' : '开启隐私模式'}</button>}
+          {layoutPrefs.toggleTheme && <button onClick={toggleTheme}>{theme === 'light' ? '切换夜间' : '切换白天'}</button>}
+          <button onClick={() => setShowLayoutModal(true)}>布局设置</button>
           {message && <span style={{ color: '#15803d' }}>{message}</span>}
         </div>
       </div>

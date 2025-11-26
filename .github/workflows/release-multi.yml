@@ -28,17 +28,7 @@ jobs:
           if [ "$LATEST_TAG" = "null" ]; then LATEST_TAG=""; fi
           # only compare against main release tags (strip leading v and any suffix)
           LATEST_VER=$(echo "$LATEST_TAG" | sed 's/^v//' | sed 's/-.*//')
-          DECISION=$(node -e "\
-import sys; \
-def cmp(a,b):\
-    pa=list(map(int,(a or '0.0.0').split('.')));\
-    pb=list(map(int,(b or '0.0.0').split('.')));\
-    pa+= [0]*(3-len(pa)); pb+= [0]*(3-len(pb));\
-    return (pa>pb)-(pa<pb);\
-pkg=sys.argv[1]; latest=sys.argv[2];\
-res=cmp(pkg, latest);\
-print('release' if latest=='' or res>0 else 'skip')\
-" "$PKG_VER" "$LATEST_VER")
+          DECISION=$(python .github/scripts/compare_version.py "$PKG_VER" "$LATEST_VER")
           echo "package_version=$PKG_VER" >> $GITHUB_OUTPUT
           echo "latest_version=$LATEST_VER" >> $GITHUB_OUTPUT
           if [ "$DECISION" = "release" ]; then

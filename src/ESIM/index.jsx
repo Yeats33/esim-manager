@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { invoke } from '@tauri-apps/api/tauri'
 import lockConfigMap from '../../.config/lock.config.json'
 import pkg from '../../package.json'
 import './index.css'
@@ -78,6 +79,50 @@ export default function Esim () {
   const [privacyMode, setPrivacyMode] = useState(false)
   const [creditsHtml, setCreditsHtml] = useState('')
   const lockProfile = (import.meta?.env?.VITE_LOCK_PROFILE || 'main').toLowerCase()
+  // tauri/local fallback services
+  const ensureTauriServices = () => {
+    if (window.services) return
+    const readStoreSync = () => {
+      try {
+        const raw = window.localStorage.getItem('esim_store')
+        return raw ? JSON.parse(raw) : null
+      } catch (e) { return null }
+    }
+    const writeStoreSync = (store) => {
+      try { window.localStorage.setItem('esim_store', JSON.stringify(store)); return true } catch (e) { return false }
+    }
+    const ensureNone = (store) => {
+      const noneEid = { id: '__none_eid__', eid: 'none', nickname: 'none', profiles: [] }
+      const noneCard = { id: '__none_card__', cardType: 'none', cardName: '未指定卡片', eids: [noneEid] }
+      const noneDevice = { id: '__none__', name: '未指定设备', cards: [noneCard] }
+      store.devices = Array.isArray(store.devices) ? store.devices : []
+      store.profiles = Array.isArray(store.profiles) ? store.profiles : []
+      if (!store.devices.find(d => d.id === '__none__')) store.devices.unshift(noneDevice)
+    }
+    window.services = {
+      getDevices () { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); return s.devices },
+      getEsimProfiles () { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); return s.profiles },
+      getDevicesAndProfiles () { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); return { devices: s.devices, profiles: s.profiles } },
+      addDevice (device) { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); const nd = { id: Date.now().toString(), name: device.name || 'Unnamed Device', cards: [] }; s.devices.push(nd); writeStoreSync(s); return nd },
+      addCard (deviceId, card) { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); const dev = s.devices.find(d => d.id === deviceId) || s.devices[0]; const nc = { id: Date.now().toString() + Math.random().toString(36).slice(2), cardType: card.cardType || 'native', cardName: card.cardName || 'Unnamed Card', eids: [] }; dev.cards = dev.cards || []; dev.cards.push(nc); writeStoreSync(s); return nc },
+      addEid (deviceId, cardId, eidValue, nickname) { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); const dev = s.devices.find(d => d.id === deviceId) || s.devices[0]; const card = (dev.cards || []).find(c => c.id === cardId) || (dev.cards || [])[0]; const eid = { id: Date.now().toString() + Math.random().toString(36).slice(2), eid: eidValue, nickname }; card.eids = card.eids || []; card.eids.push(eid); writeStoreSync(s); return eid },
+      addEsimProfile (profile, eidId) { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); const p = { ...profile, id: Date.now().toString(), eidId: eidId || profile.eidId || '__none_eid__' }; s.profiles.push(p); writeStoreSync(s); return p },
+      updateDevice (id, patch) { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); const d = s.devices.find(x => x.id === id); if (d) Object.assign(d, patch); writeStoreSync(s) },
+      updateCard (id, patch) { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); s.devices.forEach(d => { const c = (d.cards || []).find(x => x.id === id); if (c) Object.assign(c, patch) }); writeStoreSync(s) },
+      updateEid (id, patch) { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); s.devices.forEach(d => (d.cards || []).forEach(c => { const e = (c.eids || []).find(x => x.id === id); if (e) Object.assign(e, patch) })); writeStoreSync(s) },
+      updateEsimProfile (id, patch) { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); const p = s.profiles.find(x => x.id === id); if (p) Object.assign(p, patch); writeStoreSync(s) },
+      removeEsimProfile (id) { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); s.profiles = s.profiles.filter(p => p.id !== id); writeStoreSync(s) },
+      removeDevice (id) { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); s.devices = s.devices.filter(d => d.id !== id); writeStoreSync(s) },
+      removeCard (id) { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); s.devices.forEach(d => { d.cards = (d.cards || []).filter(c => c.id !== id) }); writeStoreSync(s) },
+      removeEid (id) { const s = readStoreSync() || { devices: [], profiles: [] }; ensureNone(s); s.devices.forEach(d => (d.cards || []).forEach(c => { c.eids = (c.eids || []).filter(e => e.id !== id) })); writeStoreSync(s) },
+      resetEsimStore () { const s = { devices: [], profiles: [] }; ensureNone(s); writeStoreSync(s) },
+      importEsimProfilesFromFile () { return [] },
+      writeTextFile (text) { try { window.localStorage.setItem('esim_last_export', text); return 'localStorage://esim_last_export' } catch (e) { return '' } }
+    }
+  }
+  useEffect(() => {
+    ensureTauriServices()
+  }, [])
   const lockConfig = lockConfigMap[lockProfile] || lockConfigMap.main || { enabled: true, delayMinutes: 0 }
   const appVersion = import.meta?.env?.VITE_APP_VERSION || pkg.version || ''
   const appBranch = import.meta?.env?.VITE_APP_BRANCH || lockProfile
@@ -133,6 +178,7 @@ export default function Esim () {
   const newDeviceInputRef = useRef(null)
   const newCardNameInputRef = useRef(null)
   const newEidValueInputRef = useRef(null)
+  const lockTimerRef = useRef(null)
   // inline edit states
   const [editingDeviceId, setEditingDeviceId] = useState('')
   const [editingDeviceName, setEditingDeviceName] = useState('')

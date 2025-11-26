@@ -1,0 +1,23 @@
+[package]
+name = "esim-manager"
+version = "1.0.0"
+edition = "2021"
+
+description = "eSIM Manager Tauri Shell"
+authors = ["Yeats33"]
+license = "CC-BY-NC-SA-4.0"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2", features = ["shell-open", "dialog-open", "fs-all"] }
+chrono = "0.4"
+
+[profile.release]
+panic = "abort"
+lto = true
+codegen-units = 1
+opt-level = "s"

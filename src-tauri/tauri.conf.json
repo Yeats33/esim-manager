@@ -1,0 +1,35 @@
+{
+  "package": {
+    "productName": "eSIM 管理工具",
+    "version": "1.0.2"
+  },
+  "tauri": {
+    "windows": [
+      {
+        "title": "eSIM 管理工具",
+        "width": 1200,
+        "height": 800,
+        "resizable": true
+      }
+    ],
+    "allowlist": {
+      "shell": {
+        "all": true
+      },
+      "fs": {
+        "all": true
+      },
+      "dialog": {
+        "all": true
+      },
+      "path": {
+        "all": true
+      }
+    },
+    "bundle": {
+      "identifier": "com.yeats33.esim-manager",
+      "icon": ["icons/icon.icns", "icons/icon.ico", "icons/icon.png"],
+      "targets": ["dmg", "msi", "appimage"]
+    }
+  }
+}

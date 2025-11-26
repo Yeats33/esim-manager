@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: tauri-build-${{ github.ref }}
+  group: tauri-build-queue
   cancel-in-progress: false
 
 jobs:
@@ -31,8 +31,9 @@ jobs:
           node-version: 18
           cache: npm
 
-      - name: Install deps
-        run: npm ci
+      - name: Install deps (regenerate lock if needed)
+        run: |
+          npm install --no-fund --no-audit
 
       - name: Build web assets
         run: npm run build

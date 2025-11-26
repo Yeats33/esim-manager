@@ -17,7 +17,12 @@ def main():
             raise SystemExit("No icon found to convert")
     dst = Path("src-tauri/icons/icon.png")
     dst.parent.mkdir(parents=True, exist_ok=True)
-    img = Image.open(src).convert("RGBA")
+    try:
+        img = Image.open(src).convert("RGBA")
+    except Exception as e:
+        # fallback: create a simple 64x64 transparent RGBA to avoid broken stream
+        print(f"Failed to read {src} ({e}), generating blank RGBA icon instead")
+        img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     img.save(dst, format="PNG")
     print(f"Icon converted to RGBA and saved to {dst}")
 

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { invoke } from '@tauri-apps/api/tauri'
 import lockConfigMap from '../../.config/lock.config.json'
 import pkg from '../../package.json'
 import './index.css'

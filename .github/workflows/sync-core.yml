@@ -48,7 +48,8 @@ jobs:
             done
 
             # merge from core
-            git merge --no-edit origin/core || { echo "Merge into $BR failed"; exit 1; }
+            # prefer core version on conflicts
+            git merge -X theirs --no-edit origin/core || { echo "Merge into $BR failed"; exit 1; }
 
             # restore protected files if they existed
             for P in "${PROTECT_PATHS[@]}"; do

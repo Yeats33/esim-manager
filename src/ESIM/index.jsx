@@ -283,7 +283,7 @@ export default function Esim () {
   }, [manageView])
 
   useEffect(() => {
-    fetch('/credits.html')
+    fetch('credits.html')
       .then(res => res.text())
       .then(text => setCreditsHtml(text))
       .catch(() => setCreditsHtml('无法加载 credits.html，请检查文件'))

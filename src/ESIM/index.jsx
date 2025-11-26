@@ -133,6 +133,7 @@ export default function Esim () {
   const newDeviceInputRef = useRef(null)
   const newCardNameInputRef = useRef(null)
   const newEidValueInputRef = useRef(null)
+  const lockTimerRef = useRef(null)
   // inline edit states
   const [editingDeviceId, setEditingDeviceId] = useState('')
   const [editingDeviceName, setEditingDeviceName] = useState('')

@@ -53,6 +53,7 @@ export default function Esim () {
   const [actionProfileId, setActionProfileId] = useState(null)
   const [actionAmount, setActionAmount] = useState(0)
   const [actionDays, setActionDays] = useState(0)
+  const [actionValidityMode, setActionValidityMode] = useState('extend') // extend | reset
   // device/card/eid management inputs
   const [newDeviceInput, setNewDeviceInput] = useState('')
   const [newCardDeviceSelect, setNewCardDeviceSelect] = useState('')
@@ -1467,7 +1468,13 @@ export default function Esim () {
             e.preventDefault()
             try {
               if (actionAmount) window.services.adjustEsimBalance(actionProfileId, Number(actionAmount))
-              if (actionDays) window.services.extendEsimValidity(actionProfileId, Number(actionDays))
+              if (actionDays) {
+                if (actionValidityMode === 'reset' && typeof window.services.resetEsimValidityFromToday === 'function') {
+                  window.services.resetEsimValidityFromToday(actionProfileId, Number(actionDays))
+                } else {
+                  window.services.extendEsimValidity(actionProfileId, Number(actionDays))
+                }
+              }
               setMessage('操作成功')
               setTimeout(() => setMessage(''), 2000)
               setShowActionForm(false)
@@ -1482,8 +1489,18 @@ export default function Esim () {
               <input type='number' step='0.01' value={actionAmount} onChange={e => setActionAmount(e.target.value)} style={{ width: '100%' }} />
             </div>
             <div style={{ marginBottom: 8 }}>
-              <label>延长有效期（天数）</label>
-              <input type='number' value={actionDays} onChange={e => setActionDays(e.target.value)} style={{ width: '100%' }} />
+              <label>有效期操作</label>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <input type='radio' name='validityMode' value='extend' checked={actionValidityMode === 'extend'} onChange={() => setActionValidityMode('extend')} />
+                  延长（在当前基础上加天数）
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <input type='radio' name='validityMode' value='reset' checked={actionValidityMode === 'reset'} onChange={() => setActionValidityMode('reset')} />
+                  重置（从今天起加天数）
+                </label>
+              </div>
+              <input type='number' value={actionDays} onChange={e => setActionDays(e.target.value)} style={{ width: '100%' }} placeholder='天数（正数）' />
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button type='button' onClick={() => setShowActionForm(false)}>取消</button>

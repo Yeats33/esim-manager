@@ -66,3 +66,9 @@ npm run build    # 构建
   - 导入/导出 JSON，设备专属“未指定”占位，类型筛选与隐藏未指定开关。
   - 配置字段扩展：号码/区号/APN/流量短信语音（单位+周期）/备注/Aff 链接。
   - 版权信息改用 `public/credits.html`（中英可折叠），许可 CC BY-NC-SA 4.0。
+
+## Release 1.0.1
+- Title: eSIM 管理工具 v1.0.1
+- Notes:
+  - 使用/充值弹窗新增“延长/重置有效期”模式，可从今天重置 +N 天或在当前有效期上延长。
+  - preload 增加 `resetEsimValidityFromToday` 接口，支持重置有效期。

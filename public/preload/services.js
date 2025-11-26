@@ -424,6 +424,17 @@ window.services = {
     return true
   },
 
+  resetEsimValidityFromToday (id, days) {
+    const store = this._getStore()
+    const p = store.profiles.find(x => x.id === id)
+    if (!p) return false
+    const base = new Date()
+    const newDate = new Date(base.getTime() + Number(days) * 24 * 60 * 60 * 1000)
+    p.validUntil = newDate.toISOString()
+    this._saveStore(store)
+    return true
+  },
+
   removeEsimProfile (id) {
     const store = this._getStore()
     const before = store.profiles.length

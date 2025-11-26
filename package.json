@@ -1,4 +1,6 @@
 {
+  "name": "esim-manager",
+  "version": "1.0.0-beta",
   "type": "module",
   "scripts": {
     "dev": "vite",

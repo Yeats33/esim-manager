@@ -75,10 +75,11 @@ export default function Esim () {
   const [hideNoneEids, setHideNoneEids] = useState(false)
   const [privacyMode, setPrivacyMode] = useState(false)
   const [creditsHtml, setCreditsHtml] = useState('')
-  const [locked, setLocked] = useState(true)
+  const [locked, setLocked] = useState(false)
   const [lockInput, setLockInput] = useState('')
   const [lockError, setLockError] = useState('')
   const lockAnswer = '奶昔' // 本工具首发论坛名称（可修改）
+  const lockTimerRef = useRef(null)
   // 布局可配置
   const defaultLayoutPrefs = {
     reset: true,
@@ -363,8 +364,17 @@ export default function Esim () {
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem('esim_unlock')
-      if (saved === lockAnswer) setLocked(false)
-    } catch (e) {}
+      if (saved === lockAnswer) {
+        setLocked(false)
+      } else {
+        lockTimerRef.current = setTimeout(() => setLocked(true), 10 * 60 * 1000)
+      }
+    } catch (e) {
+      lockTimerRef.current = setTimeout(() => setLocked(true), 10 * 60 * 1000)
+    }
+    return () => {
+      if (lockTimerRef.current) clearTimeout(lockTimerRef.current)
+    }
   }, [])
   useEffect(() => {
     try {
@@ -381,6 +391,7 @@ export default function Esim () {
       setLockError('')
       setLockInput('')
       try { window.localStorage.setItem('esim_unlock', lockAnswer) } catch (e) {}
+      if (lockTimerRef.current) clearTimeout(lockTimerRef.current)
     } else {
       setLockError('答案不正确，请输入正确的论坛名称解锁')
     }

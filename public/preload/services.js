@@ -114,6 +114,12 @@ window.services = {
     return file
   },
 
+  deleteEsimStore () {
+    const file = this._getEsimStorePath()
+    if (fs.existsSync(file)) fs.unlinkSync(file)
+    return true
+  },
+
   _ensureDeviceNoneCard (device) {
     if (!device) return null
     device.cards = device.cards || []

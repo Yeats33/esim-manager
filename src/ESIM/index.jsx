@@ -54,6 +54,9 @@ export default function Esim () {
   const [actionAmount, setActionAmount] = useState(0)
   const [actionDays, setActionDays] = useState(0)
   const [actionValidityMode, setActionValidityMode] = useState('extend') // extend | reset
+  const [actionTemplateSelect, setActionTemplateSelect] = useState('')
+  const [actionTemplateName, setActionTemplateName] = useState('')
+  const [actionTemplates, setActionTemplates] = useState([])
   // device/card/eid management inputs
   const [newDeviceInput, setNewDeviceInput] = useState('')
   const [newCardDeviceSelect, setNewCardDeviceSelect] = useState('')
@@ -81,29 +84,29 @@ export default function Esim () {
     cardType: 'native',
     cardName: '示例卡片',
     nickname: '示例套餐',
-    phoneNumber: '13800138000',
-    country: '中国',
-    areaCode: '+86',
+    phoneNumber: '57211275',
+    country: '🇪🇪爱沙尼亚',
+    areaCode: '+372',
     apn: 'cmnet',
     dataBalance: 10,
     dataUnit: 'GB',
-    dataCycle: 'month',
+    dataCycle: 'day',
     dataPeriod: 30,
-    smsBalance: 100,
+    smsBalance: 0,
     smsUnit: '条',
     smsCycle: 'month',
     smsPeriod: 30,
-    voiceBalance: 200,
+    voiceBalance: 0,
     voiceUnit: '分钟',
     voiceCycle: 'month',
     voicePeriod: 30,
-    operator: '示例运营商',
-    roamingOperator: '示例漫游',
+    operator: 'esim.gg',
+    roamingOperator: 'EE',
     balance: 50,
     monthlyFee: 20,
     retention: '每月充值保号',
-    affLink: 'https://example.com/aff',
-    validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    affLink: 'https://esim.gge/1esim',
+    validUntil: new Date('2025-12-26T01:59:20.407Z').toISOString(),
     notes: '这是一个示例配置'
   }
   // refs for stable focus
@@ -164,6 +167,17 @@ export default function Esim () {
     const noneCard = noneDevice && (noneDevice.cards || []).find(c => c.id === '__none_card__')
     const noneEid = noneCard && (noneCard.eids || []).find(e => e.id === '__none_eid__')
     return { noneDeviceId: noneDevice?.id || '__none__', noneCardId: noneCard?.id || '__none_card__', noneEidId: noneEid?.id || '__none_eid__' }
+  }
+  const attachTemplates = (profile) => {
+    const p = { ...profile }
+    try {
+      const raw = window.localStorage.getItem(`esim_action_templates_${p.id}`)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) p.actionTemplates = parsed
+      }
+    } catch (e) {}
+    return p
   }
   const findProfilesByEid = (eidId) => profiles.filter(p => p.eidId === eidId)
   const findUnboundProfilesForCard = (card, deviceName) => profiles.filter(p => (!p.eidId || p.eidId === '__none_eid__') && ensureCardLabel(p.cardName) === ensureCardLabel(card.cardName) && ensureDeviceLabel(p.deviceName) === ensureDeviceLabel(deviceName))
@@ -322,6 +336,16 @@ export default function Esim () {
       .then(text => setCreditsHtml(text))
       .catch(() => setCreditsHtml('无法加载 credits.html，请检查文件'))
   }, [])
+  useEffect(() => {
+    if (!actionProfileId) return
+    try {
+      const raw = window.localStorage.getItem(`esim_action_templates_${actionProfileId}`)
+      const parsed = raw ? JSON.parse(raw) : []
+      setActionTemplates(Array.isArray(parsed) ? parsed : [])
+    } catch (e) {
+      setActionTemplates([])
+    }
+  }, [actionProfileId])
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem('esim_unlock')
@@ -843,7 +867,7 @@ export default function Esim () {
       if (!window.services || typeof window.services.writeTextFile !== 'function') {
         throw new Error('preload 服务不可用')
       }
-      const filePath = window.services.writeTextFile(JSON.stringify(profile, null, 2))
+      const filePath = window.services.writeTextFile(JSON.stringify(attachTemplates(profile), null, 2))
       window.utools.shellShowItemInFolder(filePath)
     } catch (err) {
       setError(err.message || String(err))
@@ -855,7 +879,7 @@ export default function Esim () {
       if (!window.services || typeof window.services.writeTextFile !== 'function') {
         throw new Error('preload 服务不可用')
       }
-      const data = JSON.stringify(profiles, null, 2)
+      const data = JSON.stringify(profiles.map(p => attachTemplates(p)), null, 2)
       const filePath = window.services.writeTextFile(data)
       window.utools.shellShowItemInFolder(filePath)
     } catch (err) {
@@ -879,6 +903,38 @@ export default function Esim () {
     }
   }
 
+  const handleRemoveSample = () => {
+    try {
+      if (!window.services) throw new Error('preload 服务不可用')
+      let removed = false
+      // 移除示例设备（会一并删除其卡片/EID/配置）
+      for (const d of devices) {
+        if (ensureDeviceLabel(d.name) === ensureDeviceLabel(templateProfile.deviceName)) {
+          window.services.removeDevice?.(d.id)
+          removed = true
+        }
+      }
+      // 冗余清理：若还有匹配的示例配置，直接删配置
+      for (const p of profiles) {
+        if (ensureCardLabel(p.cardName) === ensureCardLabel(templateProfile.cardName) || (p.nickname && p.nickname.includes('示例'))) {
+          window.services.removeEsimProfile?.(p.id)
+          removed = true
+        }
+      }
+      if (removed) {
+        setMessage('示例数据已删除')
+        setTimeout(() => setMessage(''), 2000)
+        load()
+        loadDevices()
+      } else {
+        setMessage('未找到示例数据')
+        setTimeout(() => setMessage(''), 2000)
+      }
+    } catch (err) {
+      setError(err.message || String(err))
+    }
+  }
+
   const applyTemplateProfile = () => {
     try {
       if (!window.services || typeof window.services.addDevice !== 'function') throw new Error('preload 服务不可用')
@@ -887,8 +943,16 @@ export default function Esim () {
       const eidValue = '8904' + Math.random().toString().slice(2, 14)
       const eid = window.services.addEid(device.id, card.id, eidValue, '示例EID')
       const payload = { ...templateProfile, deviceName: device.name, cardName: card.cardName, cardType: card.cardType }
-      window.services.addEsimProfile(payload, eid.id)
-      setMessage('已生成示例配置')
+      const added = window.services.addEsimProfile(payload, eid.id)
+      // 为示例配置放置默认的使用/充值模板，便于体验
+      if (added && added.id) {
+        const demoTemplates = [
+          { name: '示例续期 30 天', amount: 0, days: 30, mode: 'extend' },
+          { name: '示例充值 50', amount: 50, days: 0, mode: 'extend' }
+        ]
+        try { window.localStorage.setItem(`esim_action_templates_${added.id}`, JSON.stringify(demoTemplates)) } catch (e) {}
+      }
+      setMessage('已生成示例配置（含示例模板）')
       setTimeout(() => setMessage(''), 2000)
       load()
       loadDevices()
@@ -1067,7 +1131,15 @@ export default function Esim () {
                     <button onClick={() => { const target = moveProfileTargetMap[p.id]; if (target) handleMoveProfile(p.id, target) }}>移动 Profile</button>
                     <button onClick={() => handleExport(p)}>导出</button>
                     <button onClick={() => openAddForm(p)} style={{ marginLeft: 8 }}>编辑</button>
-                    <button onClick={() => { setActionProfileId(p.id); setShowActionForm(true); setActionAmount(0); setActionDays(0) }} style={{ marginLeft: 8 }}>使用/充值</button>
+              <button onClick={() => {
+                setActionProfileId(p.id)
+                setShowActionForm(true)
+                setActionAmount(0)
+                setActionDays(0)
+                setActionValidityMode('extend')
+                setActionTemplateSelect('')
+                setActionTemplateName('')
+              }} style={{ marginLeft: 8 }}>使用/充值</button>
                     <button onClick={() => { handleRemove(p.id) }} style={{ marginLeft: 8 }}>删除</button>
                   </div>
                 </div>
@@ -1235,6 +1307,7 @@ export default function Esim () {
           <button onClick={handleResetAll} style={{ color: '#b91c1c' }}>重置全部</button>
           <button onClick={handleImport}>从文件导入</button>
           <button onClick={handleExportAll}>导出全部</button>
+          <button onClick={handleRemoveSample}>删除示例配置</button>
           <button onClick={applyTemplateProfile}>生成示例配置</button>
           <button onClick={copyTemplateProfile}>复制示例 JSON</button>
           <button onClick={() => setShowUid(prev => !prev)}>{showUid ? '隐藏 UID' : '显示 UID'}</button>
@@ -1580,6 +1653,26 @@ export default function Esim () {
           }} style={{ background: '#fff', padding: 16, borderRadius: 8, minWidth: 320 }}>
             <h3 style={{ marginTop: 0 }}>使用 / 充值（对已绑定的 eSIM）</h3>
             <div style={{ marginBottom: 8 }}>
+              <label>模板快速填充</label>
+              <select value={actionTemplateSelect} onChange={e => {
+                const val = e.target.value
+                setActionTemplateSelect(val)
+                const t = actionTemplates.find(x => x.name === val)
+                if (t) {
+                  setActionAmount(t.amount)
+                  setActionDays(t.days)
+                  setActionValidityMode(t.mode || 'extend')
+                }
+              }} style={{ width: '100%', marginBottom: 4 }}>
+                <option value=''>选择模板</option>
+                {actionTemplates.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+              </select>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4, alignItems: 'center' }}>
+                <input placeholder='模板名称' value={actionTemplateName} onChange={e => setActionTemplateName(e.target.value)} style={{ flex: 1 }} />
+                <button type='button' onClick={saveActionTemplate}>保存为模板</button>
+              </div>
+            </div>
+            <div style={{ marginBottom: 8 }}>
               <label>金额（正为充值，负为消费）</label>
               <input type='number' step='0.01' value={actionAmount} onChange={e => setActionAmount(e.target.value)} style={{ width: '100%' }} />
             </div>
@@ -1607,3 +1700,28 @@ export default function Esim () {
     </div>
   )
 }
+  const saveActionTemplate = () => {
+    if (!actionProfileId) return
+    const name = (actionTemplateName || actionTemplateSelect || '').trim()
+    if (!name) {
+      setActionTemplateName('')
+      setLockError('')
+      setMessage('请输入模板名称')
+      setTimeout(() => setMessage(''), 1500)
+      return
+    }
+    const tpl = {
+      name,
+      amount: Number(actionAmount || 0),
+      days: Number(actionDays || 0),
+      mode: actionValidityMode || 'extend'
+    }
+    const next = [...actionTemplates.filter(t => t.name !== tpl.name), tpl]
+    setActionTemplates(next)
+    try {
+      window.localStorage.setItem(`esim_action_templates_${actionProfileId}`, JSON.stringify(next))
+    } catch (e) {}
+    setActionTemplateSelect(tpl.name)
+    setMessage('模板已保存')
+    setTimeout(() => setMessage(''), 2000)
+  }

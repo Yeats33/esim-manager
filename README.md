@@ -5,9 +5,8 @@
 ![undefined](https://m.360buyimg.com/i/jfs/t1/353365/24/18478/280123/69264633F60ee7cd2/402514907542f050.png)
 ![undefined](https://m.360buyimg.com/i/jfs/t1/367488/39/5264/273325/69264631F3440fbc2/071799e99e2bfe05.png)
 ![undefined](https://m.360buyimg.com/i/jfs/t1/367811/29/6220/243974/6926463eFba72d304/592ea438d987ba98.png)
-## 注意
-- 锁策略可配置：`.config/lock.config.json` 定义各 profile 的锁定规则，默认 profile 为 `main`，可通过环境变量 `VITE_LOCK_PROFILE` 指定（如 `trial` 为 10 分钟后锁，`nolock` 不锁）。
-- 解锁问题：“本工具首发于哪个论坛？”。如需无锁或其他策略，可切换对应 profile/分支或下载 trial 发布包：<https://github.com/Yeats33/esim-manager/releases>
+
+- 解锁问题：“本工具首发于哪个论坛？”。如需无锁或其他策略，可下载 trial 发布包：<https://github.com/Yeats33/esim-manager/releases>
 
 ## 主要功能
 - 配置管理：新增/编辑/删除，字段包含号码/国家区号/APN/流量短信语音（单位+周期）/备注/Aff 链接等。

@@ -41,9 +41,30 @@ jobs:
           bump package.json
           bump public/plugin.json
 
+      - name: Update README release block
+        env:
+          NEW_VER: ${{ steps.bump.outputs.new_version }}
+        run: |
+          python - <<'PY'
+import os, re, pathlib
+v = os.environ.get('NEW_VER')
+if not v:
+    raise SystemExit('no version provided')
+tpl = f"## Release {v}\n- Title: eSIM 管理工具 v{v}\n- Notes:"
+path = pathlib.Path('README.md')
+text = path.read_text()
+pattern = re.compile(r"## Release [0-9.]+\n- Title: [^\n]+\n- Notes:")
+if pattern.search(text):
+    text = pattern.sub(tpl, text, count=1)
+else:
+    text = text.rstrip() + "\n\n" + tpl + "\n"
+path.write_text(text)
+print('README updated to', v)
+PY
+
       - name: Commit changes
         run: |
-          git add package.json public/plugin.json
+          git add package.json public/plugin.json README.md
           git commit -m "chore: bump version to ${{ steps.bump.outputs.new_version }}" || echo "nothing to commit"
 
       - name: Push

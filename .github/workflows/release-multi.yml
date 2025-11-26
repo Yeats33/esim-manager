@@ -128,6 +128,6 @@ jobs:
           tag_name: v${{ steps.ver.outputs.NOLOCK_VER }}-nolock
           name: eSIM 管理工具 v${{ steps.ver.outputs.NOLOCK_VER }} (nolock)
           draft: false
-          prerelease: false
+          prerelease: true
           files: artifacts/nolock.upxs
         if: steps.check_release.outputs.should_release == 'true'

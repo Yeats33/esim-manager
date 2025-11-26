@@ -5,6 +5,10 @@
 ![undefined](https://m.360buyimg.com/i/jfs/t1/353365/24/18478/280123/69264633F60ee7cd2/402514907542f050.png)
 ![undefined](https://m.360buyimg.com/i/jfs/t1/367488/39/5264/273325/69264631F3440fbc2/071799e99e2bfe05.png)
 ![undefined](https://m.360buyimg.com/i/jfs/t1/367811/29/6220/243974/6926463eFba72d304/592ea438d987ba98.png)
+## 注意
+- 当前分支带锁，需要回答“本工具首发于哪个论坛？”解锁。
+- 如需无锁试用，请切换到 trial 分支或下载 trial 版发布包：<https://github.com/Yeats33/esim-manager/releases>
+
 ## 主要功能
 - 配置管理：新增/编辑/删除，字段包含号码/国家区号/APN/流量短信语音（单位+周期）/备注/Aff 链接等。
 - 层级管理：设备/卡片/EID 可新增、编辑、删除、展开查看子项，支持移动 Profile、UID 显示开关、隐藏未指定占位。

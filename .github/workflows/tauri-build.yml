@@ -31,16 +31,12 @@ jobs:
       - name: Install deps (regenerate lock if needed)
         run: |
           npm install --no-fund --no-audit
-          npm install --no-fund --no-audit @tauri-apps/api@^2 @tauri-apps/cli@^2
 
       - name: Build web assets
         run: npm run build
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Install Tauri CLI
-        run: npm install -g @tauri-apps/cli@^2
 
       - name: Tauri build
         run: npm run tauri:build

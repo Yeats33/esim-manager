@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import lockConfigMap from '../.config/lock.config.json'
+import lockConfigMap from '../../.config/lock.config.json'
+import pkg from '../../package.json'
 import './index.css'
 
 export default function Esim () {
@@ -78,6 +79,8 @@ export default function Esim () {
   const [creditsHtml, setCreditsHtml] = useState('')
   const lockProfile = (import.meta?.env?.VITE_LOCK_PROFILE || 'main').toLowerCase()
   const lockConfig = lockConfigMap[lockProfile] || lockConfigMap.main || { enabled: true, delayMinutes: 0 }
+  const appVersion = import.meta?.env?.VITE_APP_VERSION || pkg.version || ''
+  const appBranch = import.meta?.env?.VITE_APP_BRANCH || lockProfile
   const [locked, setLocked] = useState(false)
   const [lockInput, setLockInput] = useState('')
   const [lockError, setLockError] = useState('')
@@ -1371,7 +1374,9 @@ export default function Esim () {
           </div>
         </div>
       )}
-      <h2>eSIM 管理</h2>
+      <h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        eSIM 管理 <sub style={{ color: '#666', fontWeight: 400 }}>{appVersion} · {appBranch}</sub>
+      </h2>
       <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {layoutPrefs.reset && <button onClick={handleResetAll} style={{ color: '#b91c1c' }}>重置全部</button>}

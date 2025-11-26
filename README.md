@@ -1,4 +1,4 @@
-# eSIM 管理工具（uTools 插件）
+# eSIM 管理工具（uTools 插件） <sub>v1.0.2 · main</sub>
 
 开源的 uTools 插件，帮助管理 eSIM 配置、设备、卡片、EID，支持导入/导出、本地存储与隐私/UID 控制。基于 Vite + React。
 ## 图片展示

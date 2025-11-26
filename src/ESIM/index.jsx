@@ -79,6 +79,9 @@ export default function Esim () {
   const [privacyMode, setPrivacyMode] = useState(false)
   const [creditsHtml, setCreditsHtml] = useState('')
   const lockProfile = (import.meta?.env?.VITE_LOCK_PROFILE || 'main').toLowerCase()
+  useEffect(() => {
+    ensureTauriServices()
+  }, [])
   // tauri/local fallback services
   const ensureTauriServices = () => {
     if (window.services) return

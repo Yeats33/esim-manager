@@ -3,6 +3,12 @@
     "productName": "eSIM 管理工具",
     "version": "1.0.2"
   },
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:5173",
+    "distDir": "../dist"
+  },
   "tauri": {
     "windows": [
       {
@@ -28,7 +34,7 @@
     },
     "bundle": {
       "identifier": "com.yeats33.esim-manager",
-      "icon": ["icons/icon.icns", "icons/icon.ico", "icons/icon.png"],
+      "icon": ["icons/icon.png"],
       "targets": ["dmg", "msi", "appimage"]
     }
   }

@@ -1,0 +1,99 @@
+name: Release Multi Variant
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Compute versions
+        id: ver
+        run: |
+          MAIN_VER=$(node -e "console.log(require('./package.json').version)")
+          IFS='.' read MAJ MIN PAT <<<"$MAIN_VER"
+          TP=$((PAT-5)); [ $TP -lt 0 ] && TP=0
+          TRIAL_VER="$MAJ.$MIN.$TP"
+          NM=$((MIN-1)); [ $NM -lt 0 ] && NM=0
+          NOLOCK_VER="$MAJ.$NM.$PAT"
+          echo "MAIN_VER=$MAIN_VER"   >> $GITHUB_OUTPUT
+          echo "TRIAL_VER=$TRIAL_VER" >> $GITHUB_OUTPUT
+          echo "NOLOCK_VER=$NOLOCK_VER" >> $GITHUB_OUTPUT
+
+      - name: Build main
+        run: |
+          VITE_APP_VERSION=${{ steps.ver.outputs.MAIN_VER }} \
+          VITE_APP_BRANCH=main \
+          npm run build
+          mkdir -p artifacts/main
+          cp -R dist/* artifacts/main/
+          cd artifacts && zip -r main.zip main
+
+      - name: Build trial (10m lock)
+        run: |
+          git checkout -- package.json public/plugin.json .env || true
+          jq '.version = "${{ steps.ver.outputs.TRIAL_VER }}"' package.json > /tmp/pkg && mv /tmp/pkg package.json
+          jq '.version = "${{ steps.ver.outputs.TRIAL_VER }}"' public/plugin.json > /tmp/plugin && mv /tmp/plugin public/plugin.json
+          VITE_LOCK_PROFILE=trial \
+          VITE_APP_VERSION=${{ steps.ver.outputs.TRIAL_VER }} \
+          VITE_APP_BRANCH=trial \
+          npm run build
+          mkdir -p artifacts/trial
+          cp -R dist/* artifacts/trial/
+          cd artifacts && zip -r trial.zip trial
+
+      - name: Build nolock
+        run: |
+          git checkout -- package.json public/plugin.json .env || true
+          jq '.version = "${{ steps.ver.outputs.NOLOCK_VER }}"' package.json > /tmp/pkg && mv /tmp/pkg package.json
+          jq '.version = "${{ steps.ver.outputs.NOLOCK_VER }}"' public/plugin.json > /tmp/plugin && mv /tmp/plugin public/plugin.json
+          VITE_LOCK_PROFILE=nolock \
+          VITE_APP_VERSION=${{ steps.ver.outputs.NOLOCK_VER }} \
+          VITE_APP_BRANCH=nolock \
+          npm run build
+          mkdir -p artifacts/nolock
+          cp -R dist/* artifacts/nolock/
+          cd artifacts && zip -r nolock.zip nolock
+
+      - name: Create release main
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.ver.outputs.MAIN_VER }}
+          name: eSIM 管理工具 v${{ steps.ver.outputs.MAIN_VER }} (main)
+          draft: false
+          prerelease: false
+          files: artifacts/main.zip
+
+      - name: Create release trial
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.ver.outputs.TRIAL_VER }}-trial
+          name: eSIM 管理工具 v${{ steps.ver.outputs.TRIAL_VER }} (trial)
+          draft: false
+          prerelease: true
+          files: artifacts/trial.zip
+
+      - name: Create release nolock
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.ver.outputs.NOLOCK_VER }}-nolock
+          name: eSIM 管理工具 v${{ steps.ver.outputs.NOLOCK_VER }} (nolock)
+          draft: false
+          prerelease: false
+          files: artifacts/nolock.zip
